@@ -79,11 +79,13 @@ def deployed():
     controller.approveStrategy(WANT, strategy, {"from": governance})
     controller.setStrategy(WANT, strategy, {"from": deployer})
 
+    WETH = strategy.WETH()
+
     ## Uniswap some tokens here
-    router = interface.IUniswapRouterV2("0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D")
+    router = interface.IUniswapRouterV2(strategy.SUSHISWAP_ROUTER())
     router.swapExactETHForTokens(
-        0,  ## Mint out
-        ["0x82aF49447D8a07e3bd95BD0d56f35241523fBab1", WANT],
+        0,  ## Min out
+        [WETH, WANT],
         deployer,
         9999999999999999,
         {"from": deployer, "value": 5000000000000000000},
