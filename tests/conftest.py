@@ -4,6 +4,7 @@ from brownie import (
     Controller,
     SettV3,
     MyStrategy,
+    ERC20Upgradeable
 )
 from config import (
     BADGER_DEV_MULTISIG,
@@ -80,16 +81,24 @@ def deployed():
     controller.setStrategy(WANT, strategy, {"from": deployer})
 
     WETH = strategy.WETH()
+    WBTC = strategy.WBTC()
 
     ## Uniswap some tokens here
     router = interface.IUniswapRouterV2(strategy.SUSHISWAP_ROUTER())
     router.swapExactETHForTokens(
         0,  ## Min out
-        [WETH, WANT],
+        [WETH, WBTC],
         deployer,
         9999999999999999,
         {"from": deployer, "value": 5000000000000000000},
     )
+    
+    WBTC_TOKEN = ERC20Upgradeable.at(WBTC)
+    toDeposit = WBTC_TOKEN.balanceOf(deployer)
+    WBTC_TOKEN.approve(strategy.CURVE_POOL(), toDeposit, {"from": deployer})
+    ## Doing this gives us want
+    pool = interface.ICurveStableSwapREN(strategy.CURVE_POOL())
+    pool.add_liquidity([toDeposit, 0], 0, {"from": deployer})
 
     return DotMap(
         deployer=deployer,

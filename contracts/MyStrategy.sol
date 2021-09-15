@@ -53,7 +53,7 @@ contract MyStrategy is BaseStrategy {
         0x635EB2C39C75954bb53Ebc011BDC6AfAAcE115A6;
 
     // NOTE: Gauge can change, see setGauge
-    address public gauge = 0xC2b1DF84112619D190193E48148000e3990Bf627;
+    address public gauge; // Set in initialize
 
     function initialize(
         address _governance,
@@ -87,6 +87,9 @@ contract MyStrategy is BaseStrategy {
             SUSHISWAP_ROUTER,
             type(uint256).max
         );
+
+        // Gauge at time of deployment, can be changed via setGauge
+        gauge = 0xC2b1DF84112619D190193E48148000e3990Bf627;
     }
 
     /// @dev Governance Set new Gauge Function
@@ -241,8 +244,7 @@ contract MyStrategy is BaseStrategy {
         // Add liquidity for wBTC-renBTC pool by depositing wBTC
         ICurveStableSwapREN(CURVE_POOL).add_liquidity(
             [IERC20Upgradeable(WBTC).balanceOf(address(this)), 0],
-            0,
-            true
+            0
         );
 
         uint256 earned =
