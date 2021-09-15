@@ -83,13 +83,10 @@ contract MyStrategy is BaseStrategy {
 
         /// @dev do one off approvals here
         IERC20Upgradeable(want).safeApprove(gauge, type(uint256).max);
-        IERC20Upgradeable(want).safeApprove(WBTC, type(uint256).max);
-
         IERC20Upgradeable(reward).safeApprove(
             SUSHISWAP_ROUTER,
             type(uint256).max
         );
-        IERC20Upgradeable(CRV).safeApprove(SUSHISWAP_ROUTER, type(uint256).max);
     }
 
     /// @dev Governance Set new Gauge Function
