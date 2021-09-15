@@ -30,9 +30,11 @@ contract MyStrategy is BaseStrategy {
 
     // address public want // Inherited from BaseStrategy, the token the strategy wants, swaps into and tries to grow
     address public lpComponent; // Token we provide liquidity with
-    address public reward; // Token we farm and swap to want / lpComponent
+    address public reward; // it's CRV
 
     address public constant CRV = 0x11cDb42B0EB46D95f990BeDD4695A6e3fA034978;
+
+    // Used to swap from CRV to WBTC so we can provide liquidity
     address public constant WETH = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
     address public constant WBTC = 0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f;
 
@@ -173,7 +175,6 @@ contract MyStrategy is BaseStrategy {
         // figure out and claim our rewards
         ICurveGauge(gauge).claim_rewards();
 
-        // Get total rewards (WMATIC & CRV)
         uint256 rewardsAmount = IERC20Upgradeable(reward).balanceOf(address(this));
 
         // If no reward, then no-op
