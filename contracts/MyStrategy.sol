@@ -148,7 +148,8 @@ contract MyStrategy is BaseStrategy {
         protectedTokens[0] = want;
         protectedTokens[1] = lpComponent;
         protectedTokens[2] = reward;
-        protectedTokens[4] = WBTC;
+        protectedTokens[3] = WBTC;
+        protectedTokens[4] = gauge;
         return protectedTokens;
     }
 
