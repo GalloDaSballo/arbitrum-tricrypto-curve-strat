@@ -13,6 +13,7 @@ class StrategyResolver(StrategyCoreResolver):
         strategy = self.manager.strategy
         return {
             "gauge": strategy.gauge(),
+            "badgerTree": strategy.badgerTree(),
         }
 
     def hook_after_confirm_withdraw(self, before, after, params):
@@ -20,7 +21,7 @@ class StrategyResolver(StrategyCoreResolver):
         Specifies extra check for ordinary operation on withdrawal
         Use this to verify that balances in the get_strategy_destinations are properly set
         """
-        ## TODO: Check that balance in gauge goes down
+        ## Check that balance in gauge goes down
         before.balances("want", "gauge") > after.balances("want", "gauge")
 
     def hook_after_confirm_deposit(self, before, after, params):
@@ -28,7 +29,7 @@ class StrategyResolver(StrategyCoreResolver):
         Specifies extra check for ordinary operation on deposit
         Use this to verify that balances in the get_strategy_destinations are properly set
         """
-        ## TODO: Check that balance in gauge goes up
+        ## Check that balance in gauge goes up
         after.balances("want", "gauge") > before.balances("want", "gauge")
 
     def hook_after_earn(self, before, after, params):
@@ -36,7 +37,7 @@ class StrategyResolver(StrategyCoreResolver):
         Specifies extra check for ordinary operation on earn
         Use this to verify that balances in the get_strategy_destinations are properly set
         """
-        ## TODO: Check that balance in gauge goes up
+        ## Check that balance in gauge goes up
         after.balances("want", "gauge") > before.balances("want", "gauge")
 
     def confirm_harvest(self, before, after, tx):
@@ -63,7 +64,8 @@ class StrategyResolver(StrategyCoreResolver):
                 "want", "governanceRewards"
             )
 
-        ## TODO: Check that balance in tree goes up
+        ## Check that balance in tree goes up
+        after.balances("reward", "badgerTree") > before.balances("reward", "badgerTree")
 
     def confirm_tend(self, before, after, tx):
         """
@@ -84,3 +86,16 @@ class StrategyResolver(StrategyCoreResolver):
             assert after.get("strategy.balanceOfPool") > before.get(
                 "strategy.balanceOfPool"
             )
+
+    def add_balances_snap(self, calls, entities):
+        """
+            Add tracking for reward
+        """
+        super().add_balances_snap(calls, entities)
+        strategy = self.manager.strategy
+
+        reward = interface.IERC20(strategy.reward())
+
+        calls = self.add_entity_balances_for_tokens(calls, "reward", reward, entities)
+
+        return calls
