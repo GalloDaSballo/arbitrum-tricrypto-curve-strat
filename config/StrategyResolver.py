@@ -1,3 +1,4 @@
+from brownie import interface
 from helpers.StrategyCoreResolver import StrategyCoreResolver
 from rich.console import Console
 
