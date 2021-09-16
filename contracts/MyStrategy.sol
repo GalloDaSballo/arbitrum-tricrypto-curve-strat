@@ -90,6 +90,7 @@ contract MyStrategy is BaseStrategy {
             SUSHISWAP_ROUTER,
             type(uint256).max
         );
+        IERC20Upgradeable(WBTC).safeApprove(CURVE_POOL, type(uint256).max);
     }
 
     /// @dev Governance Set new Gauge Function
