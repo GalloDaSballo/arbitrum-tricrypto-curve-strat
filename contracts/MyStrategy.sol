@@ -81,15 +81,15 @@ contract MyStrategy is BaseStrategy {
         performanceFeeStrategist = _feeConfig[1];
         withdrawalFee = _feeConfig[2];
 
+        // Gauge at time of deployment, can be changed via setGauge
+        gauge = 0xC2b1DF84112619D190193E48148000e3990Bf627;
+
         /// @dev do one off approvals here
         IERC20Upgradeable(want).safeApprove(gauge, type(uint256).max);
         IERC20Upgradeable(reward).safeApprove(
             SUSHISWAP_ROUTER,
             type(uint256).max
         );
-
-        // Gauge at time of deployment, can be changed via setGauge
-        gauge = 0xC2b1DF84112619D190193E48148000e3990Bf627;
     }
 
     /// @dev Governance Set new Gauge Function
