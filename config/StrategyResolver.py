@@ -21,7 +21,7 @@ class StrategyResolver(StrategyCoreResolver):
         Use this to verify that balances in the get_strategy_destinations are properly set
         """
         ## TODO: Check that balance in gauge goes down
-        assert False
+        before.balances("want", "gauge") > after.balances("want", "gauge")
 
     def hook_after_confirm_deposit(self, before, after, params):
         """
@@ -29,7 +29,7 @@ class StrategyResolver(StrategyCoreResolver):
         Use this to verify that balances in the get_strategy_destinations are properly set
         """
         ## TODO: Check that balance in gauge goes up
-        assert False
+        after.balances("want", "gauge") > before.balances("want", "gauge")
 
     def hook_after_earn(self, before, after, params):
         """
@@ -37,7 +37,7 @@ class StrategyResolver(StrategyCoreResolver):
         Use this to verify that balances in the get_strategy_destinations are properly set
         """
         ## TODO: Check that balance in gauge goes up
-        assert False
+        after.balances("want", "gauge") > before.balances("want", "gauge")
 
     def confirm_harvest(self, before, after, tx):
         """
@@ -73,5 +73,14 @@ class StrategyResolver(StrategyCoreResolver):
 
         (Strategy Must Implement)
         """
-        ## TODO: Check if you need to customize
-        assert True
+        console.print("=== Compare Tend ===")
+        self.manager.printCompare(before, after)
+        # Tend only produces results if balance of want in strategy is > 0
+        if before.get("strategy.balanceOfWant") > 0:
+            # Check that balance of want on strategy goes to 0 after tend
+            assert after.get("strategy.balanceOfWant") == 0
+
+            # Amount deposited in pool must have increased
+            assert after.get("strategy.balanceOfPool") > before.get(
+                "strategy.balanceOfPool"
+            )
