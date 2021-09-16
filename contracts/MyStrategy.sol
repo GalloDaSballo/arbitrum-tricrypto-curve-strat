@@ -258,6 +258,8 @@ contract MyStrategy is BaseStrategy {
         /// @dev Harvest event that every strategy MUST have, see BaseStrategy
         emit Harvest(earned, block.number);
 
+        _deposit(earned);
+
         return earned;
     }
 
