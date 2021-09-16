@@ -98,7 +98,7 @@ def deployed():
     WBTC_TOKEN.approve(strategy.CURVE_POOL(), toDeposit, {"from": deployer})
     ## Doing this gives us want
     pool = interface.ICurveStableSwapREN(strategy.CURVE_POOL())
-    pool.add_liquidity([toDeposit, 0], 0, {"from": deployer})
+    pool.add_liquidity([0, toDeposit, 0], 0, {"from": deployer})
 
     return DotMap(
         deployer=deployer,

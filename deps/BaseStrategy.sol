@@ -35,7 +35,7 @@ abstract contract BaseStrategy is PausableUpgradeable, SettAccessControl {
     // Standardized harvest event for UI
     event Harvest(uint256 harvested, uint256 indexed blockNumber);
 
-    address public want; // Want: Curve.fi renBTC/wBTC (crvRenWBTC) LP token
+    address public want; // Want: Curve.fi triCrypto (crv3crypto) LP token
 
     uint256 public performanceFeeGovernance;
     uint256 public performanceFeeStrategist;
@@ -192,8 +192,9 @@ abstract contract BaseStrategy is PausableUpgradeable, SettAccessControl {
 
         // Withdraw from strategy positions, typically taking from any idle want first.
         _withdrawSome(_amount);
-        uint256 _postWithdraw =
-            IERC20Upgradeable(want).balanceOf(address(this));
+        uint256 _postWithdraw = IERC20Upgradeable(want).balanceOf(
+            address(this)
+        );
 
         // Sanity check: Ensure we were able to retrieve sufficent want from strategy positions
         // If we end up with less than the amount requested, make sure it does not deviate beyond a maximum threshold
@@ -340,10 +341,12 @@ abstract contract BaseStrategy is PausableUpgradeable, SettAccessControl {
         internal
         virtual
     {
-        uint256 _token0Balance =
-            IERC20Upgradeable(token0).balanceOf(address(this));
-        uint256 _token1Balance =
-            IERC20Upgradeable(token1).balanceOf(address(this));
+        uint256 _token0Balance = IERC20Upgradeable(token0).balanceOf(
+            address(this)
+        );
+        uint256 _token1Balance = IERC20Upgradeable(token1).balanceOf(
+            address(this)
+        );
 
         _safeApproveHelper(token0, uniswap, _token0Balance);
         _safeApproveHelper(token1, uniswap, _token1Balance);

@@ -16,7 +16,7 @@ import "../interfaces/uniswap/IUniswapRouterV2.sol";
 
 import {BaseStrategy} from "../deps/BaseStrategy.sol";
 
-/// @title Arbitrum Curve RenBTC-wBTC Strategy
+/// @title Arbitrum Curve triCrypto Strategy
 /// @author Badger DAO
 /// @notice Deposit LP Token, harvest CRV, 50% autocompound, 50% emitted via badgerTree
 contract MyStrategy is BaseStrategy {
@@ -43,7 +43,7 @@ contract MyStrategy is BaseStrategy {
 
     // We add liquidity here
     address public constant CURVE_POOL =
-        0x3E01dD8a5E1fb3481F0F589056b428Fc308AF0Fb;
+        0x960ea3e3C7FB317332d990873d354E18d7645590;
     // Swap here
     address public constant SUSHISWAP_ROUTER =
         0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506;
@@ -82,7 +82,7 @@ contract MyStrategy is BaseStrategy {
         withdrawalFee = _feeConfig[2];
 
         // Gauge at time of deployment, can be changed via setGauge
-        gauge = 0xC2b1DF84112619D190193E48148000e3990Bf627;
+        gauge = 0x97E2768e8E73511cA874545DC5Ff8067eB19B787;
 
         /// @dev do one off approvals here
         IERC20Upgradeable(want).safeApprove(gauge, type(uint256).max);
@@ -118,7 +118,7 @@ contract MyStrategy is BaseStrategy {
 
     /// @dev Specify the name of the strategy
     function getName() external pure override returns (string memory) {
-        return "wBTC-renBTC-Curve-Polygon-Rewards";
+        return "triCrypto-Curve-Arbitrum-Rewards";
     }
 
     /// @dev Specify the version of the Strategy, for upgrades
@@ -202,8 +202,9 @@ contract MyStrategy is BaseStrategy {
         // figure out and claim our rewards
         ICurveGauge(gauge).claim_rewards();
 
-        uint256 rewardsAmount =
-            IERC20Upgradeable(reward).balanceOf(address(this));
+        uint256 rewardsAmount = IERC20Upgradeable(reward).balanceOf(
+            address(this)
+        );
 
         // If no reward, then no-op
         if (rewardsAmount == 0) {
@@ -214,21 +215,23 @@ contract MyStrategy is BaseStrategy {
         uint256 sentToTree = rewardsAmount.mul(50).div(100);
         // Process CRV rewards if existing
         // Process fees on CRV Rewards
-        (uint256 governancePerformanceFee, uint256 strategistPerformanceFee) =
-            _processRewardsFees(sentToTree, reward);
+        (
+            uint256 governancePerformanceFee,
+            uint256 strategistPerformanceFee
+        ) = _processRewardsFees(sentToTree, reward);
 
-        uint256 afterFees =
-            sentToTree.sub(governancePerformanceFee).sub(
-                strategistPerformanceFee
-            );
+        uint256 afterFees = sentToTree.sub(governancePerformanceFee).sub(
+            strategistPerformanceFee
+        );
 
         // Transfer balance of CRV to the Badger Tree
         IERC20Upgradeable(reward).safeTransfer(badgerTree, afterFees);
         emit TreeDistribution(reward, afterFees, block.number, block.timestamp);
 
         // Now we swap
-        uint256 rewardsToReinvest =
-            IERC20Upgradeable(reward).balanceOf(address(this));
+        uint256 rewardsToReinvest = IERC20Upgradeable(reward).balanceOf(
+            address(this)
+        );
 
         // Swap CRV to wBTC and then LP into the pool
         address[] memory path = new address[](3);
@@ -243,14 +246,15 @@ contract MyStrategy is BaseStrategy {
             now
         );
 
-        // Add liquidity for wBTC-renBTC pool by depositing wBTC
+        // Add liquidity for triCrypto pool by depositing wBTC
         ICurveStableSwapREN(CURVE_POOL).add_liquidity(
-            [IERC20Upgradeable(WBTC).balanceOf(address(this)), 0],
+            [0, IERC20Upgradeable(WBTC).balanceOf(address(this)), 0],
             0
         );
 
-        uint256 earned =
-            IERC20Upgradeable(want).balanceOf(address(this)).sub(_before);
+        uint256 earned = IERC20Upgradeable(want).balanceOf(address(this)).sub(
+            _before
+        );
 
         /// @notice Keep this in so you get paid!
         _processPerformanceFees(earned);
