@@ -23,7 +23,7 @@ class StrategyResolver(StrategyCoreResolver):
         Use this to verify that balances in the get_strategy_destinations are properly set
         """
         ## Check that balance in gauge goes down
-        before.balances("want", "gauge") > after.balances("want", "gauge")
+        assert before.balances("want", "gauge") > after.balances("want", "gauge")
 
     def hook_after_confirm_deposit(self, before, after, params):
         """
@@ -31,7 +31,7 @@ class StrategyResolver(StrategyCoreResolver):
         Use this to verify that balances in the get_strategy_destinations are properly set
         """
         ## Check that balance in gauge goes up
-        after.balances("want", "gauge") > before.balances("want", "gauge")
+        assert after.balances("want", "sett") > before.balances("want", "sett")
 
     def hook_after_earn(self, before, after, params):
         """
@@ -39,7 +39,7 @@ class StrategyResolver(StrategyCoreResolver):
         Use this to verify that balances in the get_strategy_destinations are properly set
         """
         ## Check that balance in gauge goes up
-        after.balances("want", "gauge") > before.balances("want", "gauge")
+        assert after.balances("want", "gauge") > before.balances("want", "gauge")
 
     def confirm_harvest(self, before, after, tx):
         """
@@ -66,7 +66,7 @@ class StrategyResolver(StrategyCoreResolver):
             )
 
         ## Check that balance in tree goes up
-        after.balances("reward", "badgerTree") > before.balances("reward", "badgerTree")
+        assert after.balances("reward", "badgerTree") > before.balances("reward", "badgerTree")
 
     def confirm_tend(self, before, after, tx):
         """
