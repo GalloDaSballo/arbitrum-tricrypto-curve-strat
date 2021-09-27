@@ -84,7 +84,7 @@ def deployed():
     WBTC = strategy.WBTC()
 
     ## Uniswap some tokens here
-    router = interface.IUniswapRouterV2(strategy.SUSHISWAP_ROUTER())
+    router = interface.IUniswapRouterV2(strategy.SWAPR_ROUTER())
     router.swapExactETHForTokens(
         0,  ## Min out
         [WETH, WBTC],
