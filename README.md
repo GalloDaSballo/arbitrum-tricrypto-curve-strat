@@ -1,4 +1,11 @@
-# Arbitrum Ren wBTC Curve Strat
+# Arbitrum Ren wBTC Curve Strat - with upgrade
+
+Upgrade changes SUSHISWAP_ROUTER
+to be SWAPR_ROUTER
+Also adds `setSwaprAllowance` to set up the allowance on upgraded contract
+
+NOTE: Tests MUST be run on arbitrum-fork for `test_upgrade` to pass
+Anything else can be run on any network
 
 Some work was taken from: https://github.com/shuklaayush/WBTC-WETH-SLP-Arbitrum-Strategy
 
