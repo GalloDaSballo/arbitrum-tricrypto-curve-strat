@@ -26,6 +26,10 @@ interface ICurveGauge {
     function integrate_fraction(address arg0) external view returns (uint256);
 }
 
+interface ICurveGaugeFactory {
+    function mint(address _address) external;
+}
+
 interface ICurveStableSwapREN {
     function get_virtual_price() external view returns (uint256);
 
