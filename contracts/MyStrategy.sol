@@ -56,6 +56,9 @@ contract MyStrategy is BaseStrategy {
     // NOTE: Gauge can change, see setGauge
     address public gauge; // Set in initialize
 
+    // NOTE: Gauge factory can change, see setGaugeFactory
+    address public gaugeFactory;
+
     function initialize(
         address _governance,
         address _strategist,
@@ -112,6 +115,14 @@ contract MyStrategy is BaseStrategy {
         ICurveGauge(gauge).deposit(
             IERC20Upgradeable(want).balanceOf(address(this))
         );
+    }
+
+    /// @dev Governance set new gauge factory function
+    function setGaugeFactory(address newGaugeFactory) external {
+        _onlyGovernance();
+
+        // Set new gauge factory
+        gaugeFactory = newGaugeFactory;
     }
 
     /// @dev Add Allowance to SWAPR_ROUTER
@@ -207,7 +218,7 @@ contract MyStrategy is BaseStrategy {
         uint256 _before = IERC20Upgradeable(want).balanceOf(address(this));
 
         // figure out and claim our rewards
-        ICurveGauge(gauge).claim_rewards();
+        ICurveGaugeFactory(gaugeFactory).mint(gauge);
 
         uint256 rewardsAmount = IERC20Upgradeable(reward).balanceOf(
             address(this)

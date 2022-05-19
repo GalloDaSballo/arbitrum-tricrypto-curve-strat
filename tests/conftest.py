@@ -13,6 +13,8 @@ from config import (
     REWARD_TOKEN,
     PROTECTED_TOKENS,
     FEES,
+    GAUGE,
+    GAUGE_FACTORY
 )
 from dotmap import DotMap
 import pytest
@@ -67,6 +69,9 @@ def deployed():
         PROTECTED_TOKENS,
         FEES,
     )
+
+    strategy.setGauge(GAUGE, {"from": governance})
+    strategy.setGaugeFactory(GAUGE_FACTORY, {"from": governance})
 
     ## Tool that verifies bytecode (run independently) <- Webapp for anyone to verify
 
