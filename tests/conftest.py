@@ -72,6 +72,7 @@ def deployed():
 
     strategy.setGauge(GAUGE, {"from": governance})
     strategy.setGaugeFactory(GAUGE_FACTORY, {"from": governance})
+    strategy.setUniV3Allowance({"from": governance})
 
     ## Tool that verifies bytecode (run independently) <- Webapp for anyone to verify
 

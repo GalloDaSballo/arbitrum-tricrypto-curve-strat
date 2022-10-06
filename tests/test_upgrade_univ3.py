@@ -1,3 +1,7 @@
+import brownie
+import logging
+import pytest
+
 from brownie import (
     accounts,
     interface,
@@ -7,7 +11,9 @@ from brownie import (
     ERC20Upgradeable,
     Contract
 )
-import brownie
+from dotmap import DotMap
+from rich.console import Console
+
 from config import (
     BADGER_DEV_MULTISIG,
     WANT,
@@ -16,22 +22,19 @@ from config import (
     PROTECTED_TOKENS,
     FEES,
     GAUGE,
-    GAUGE_FACTORY
+    GAUGE_FACTORY,
+    UNIV3_ROUTER,
 )
 from helpers.SnapshotManager import SnapshotManager
 
-from dotmap import DotMap
-import pytest
 
+logger = logging.getLogger(__name__)
+GAUGE_DEPOSIT = "0x555766f3da968ecBefa690Ffd49A2Ac02f47aa5f"
 
 """
 Tests for the Upgrade from mainnet version to upgraded version
 These tests must be run on arbitrum-fork
-
-NOTE: This test is obsolete, was testing specific chain state
 """
-
-
 
 @pytest.fixture
 def vault_proxy():
@@ -48,7 +51,7 @@ def strat_proxy():
 @pytest.fixture
 def proxy_admin():
     """
-     Verify by doing web3.eth.getStorageAt("0xE83A790fC3B7132fb8d7f8d438Bc5139995BF5f4", int(
+     Verify by doing web3.eth.getStorageAt("0xE83A790fC3B7132fb8d7f8d438Bc5139995BF5f4", int(
         0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103
     )).hex()
     """
@@ -64,9 +67,6 @@ def proxy_admin_gov():
 
 def test_upgrade_and_harvest(vault_proxy, controller_proxy, deployer, strat_proxy, proxy_admin, proxy_admin_gov):
     new_strat_logic = MyStrategy.deploy({"from": deployer})
-    
-    with brownie.reverts():
-        strat_proxy.gaugeFactory()
 
     ## Setting all variables, we'll use them later
     prev_strategist = strat_proxy.strategist()
@@ -82,31 +82,51 @@ def test_upgrade_and_harvest(vault_proxy, controller_proxy, deployer, strat_prox
     prev_swapr_router = strat_proxy.SWAPR_ROUTER()
 
     gov = accounts.at(strat_proxy.governance(), force=True)
-    
-    # Deploy new logic
-    proxy_admin.upgrade(strat_proxy, new_strat_logic, {"from": proxy_admin_gov})
-    # Set new gauge
-    strat_proxy.setGauge(GAUGE, {"from": gov})
-    strat_proxy.setGaugeFactory(GAUGE_FACTORY, {"from": gov})
+    vault = accounts.at(vault_proxy.address, force=True)
 
-    assert strat_proxy.gauge() == GAUGE
-    assert strat_proxy.gaugeFactory() == GAUGE_FACTORY
+    # Harvest to clear any pending rewards for fresh test case
+    strat_proxy.harvest({"from": gov})
 
-    gauge = interface.ICurveGauge(GAUGE)
-    
-    want = interface.IERC20(WANT)
-    prev_bal = gauge.balanceOf(strat_proxy.address)
+    # Harvest on old strat, store gain in want
+    want = interface.IERC20(GAUGE_DEPOSIT)
+    prev_want_bal = want.balanceOf(strat_proxy.address)
 
-    brownie.chain.sleep(60*60*24)
+    brownie.chain.sleep(60*60*2)
     brownie.chain.mine()
 
     snap = SnapshotManager(vault_proxy, strat_proxy, controller_proxy, "StrategySnapshot")
-    # Will confirm full harvest functionality
     snap.settHarvest({"from": gov})
 
-    after_bal = gauge.balanceOf(strat_proxy.address)
+    after_want_bal = want.balanceOf(strat_proxy.address)
+    old_path_want_gain = after_want_bal - prev_want_bal
 
-    assert after_bal > prev_bal
+    # Withdraw want change to keep same conditions for future test
+    controller_proxy.withdraw(vault_proxy.token(), old_path_want_gain, {"from": vault})
+    assert want.balanceOf(strat_proxy.address) == prev_want_bal
+
+    # Deploy new logic
+    proxy_admin.upgrade(strat_proxy, new_strat_logic, {"from": proxy_admin_gov})
+    # Approve spending crv
+    strat_proxy.setUniV3Allowance({"from": gov})
+    assert strat_proxy.UNIV3_ROUTER() == UNIV3_ROUTER
+
+    # Harvest on new strat, store gain in want, compare to prev swap (should be more efficient)
+    prev_want_bal = want.balanceOf(strat_proxy.address)
+
+    brownie.chain.sleep(60*60*2)
+    brownie.chain.mine()
+
+    snap = SnapshotManager(vault_proxy, strat_proxy, controller_proxy, "StrategySnapshot")
+    snap.settHarvest({"from": gov})
+
+    after_want_bal = want.balanceOf(strat_proxy.address)
+    new_path_want_gain = after_want_bal - prev_want_bal
+
+    logger.info(f"Old want gain: {old_path_want_gain}")
+    logger.info(f"New want gain: {new_path_want_gain}")
+
+    # Compare
+    assert new_path_want_gain >= old_path_want_gain
 
     ## Checking all variables are as expected
     assert prev_strategist == strat_proxy.strategist()
@@ -121,9 +141,9 @@ def test_upgrade_and_harvest(vault_proxy, controller_proxy, deployer, strat_prox
     assert prev_swapr_router == strat_proxy.SWAPR_ROUTER()
     assert GAUGE == strat_proxy.gauge()
     assert GAUGE_FACTORY == strat_proxy.gaugeFactory()
+    assert strat_proxy.UNIV3_ROUTER() == UNIV3_ROUTER
 
-    ## Also run all ordinary operation just because
+    ## Also run all ordinary operation just because
     strat_proxy.tend({"from": gov})
     controller_proxy.withdrawAll(vault_proxy.token(), {"from": gov})
     vault_proxy.earn({"from": gov})
-    

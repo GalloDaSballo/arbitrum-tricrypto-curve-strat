@@ -13,6 +13,7 @@ import "../interfaces/badger/IController.sol";
 
 import "../interfaces/curve/ICurve.sol";
 import "../interfaces/uniswap/IUniswapRouterV2.sol";
+import "../interfaces/uniswap/IUniswapRouterV3.sol";
 
 import {BaseStrategy} from "../deps/BaseStrategy.sol";
 
@@ -52,6 +53,10 @@ contract MyStrategy is BaseStrategy {
     // Swap via Swapr
     address public constant SWAPR_ROUTER =
         0x530476d5583724A89c8841eB6Da76E7Af4C0F17E;
+
+    // Swap via UniswapV3
+    address public constant UNIV3_ROUTER =
+        0xE592427A0AEce92De3Edee1F18E0157C05861564;
 
     // NOTE: Gauge can change, see setGauge
     address public gauge; // Set in initialize
@@ -130,6 +135,13 @@ contract MyStrategy is BaseStrategy {
     function setSwaprAllowance() public {
         _onlyGovernance();
         IERC20Upgradeable(reward).safeApprove(SWAPR_ROUTER, type(uint256).max);
+    }
+
+    /// @dev Add Allowance to SWAPR_ROUTER
+    /// @dev used here because we upgraded the strat to use this
+    function setUniV3Allowance() public {
+        _onlyGovernance();
+        IERC20Upgradeable(reward).safeApprove(UNIV3_ROUTER, type(uint256).max);
     }
 
     /// ===== View Functions =====
@@ -252,17 +264,15 @@ contract MyStrategy is BaseStrategy {
         );
 
         // Swap CRV to wBTC and then LP into the pool
-        address[] memory path = new address[](3);
-        path[0] = reward;
-        path[1] = WETH;
-        path[2] = WBTC;
-        IUniswapRouterV2(SWAPR_ROUTER).swapExactTokensForTokens(
-            rewardsToReinvest,
-            0,
-            path,
-            address(this),
-            now
-        );
+        bytes memory abiEncodePackedPath = abi.encodePacked(reward, uint24(10000), WETH, uint24(3000), WBTC);
+        ExactInputParams memory params = ExactInputParams({
+                path: abiEncodePackedPath,
+                recipient: address(this),
+                deadline: block.timestamp,
+                amountIn: rewardsToReinvest,
+                amountOutMinimum: 0
+        });
+        IUniswapRouterV3(UNIV3_ROUTER).exactInput(params);
 
         // Add liquidity for triCrypto pool by depositing wBTC
         ICurveStableSwapREN(CURVE_POOL).add_liquidity(

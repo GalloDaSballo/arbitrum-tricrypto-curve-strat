@@ -1,14 +1,14 @@
+import logging
+
 from brownie import *
 from tabulate import tabulate
-from rich.console import Console
-from helpers.multicall import Multicall
-from helpers.utils import val
-
-from helpers.snapshot.snap import Snap
 
 from config.StrategyResolver import StrategyResolver
+from helpers.multicall import Multicall
+from helpers.snapshot.snap import Snap
+from helpers.utils import val
 
-console = Console()
+logger = logging.getLogger(__name__)
 
 
 class SnapshotManager:
@@ -46,7 +46,7 @@ class SnapshotManager:
         return calls
 
     def snap(self, trackedUsers=None):
-        print("snap")
+        logger.info("snap")
         snapBlock = chain.height
         entities = self.entities
 
@@ -72,7 +72,7 @@ class SnapshotManager:
         self.entities[key] = entity
 
     def init_resolver(self, name):
-        print("init_resolver", name)
+        logger.info(f"init_resolver: {name}")
         return StrategyResolver(self)
 
     def settTend(self, overrides, confirm=True):
@@ -174,7 +174,7 @@ class SnapshotManager:
     def printCompare(self, before: Snap, after: Snap):
         # self.printPermissions()
         table = []
-        console.print(
+        logger.info(
             "[green]=== Compare: {} Sett {} -> {} ===[/green]".format(
                 self.key, before.block, after.block
             )
@@ -196,7 +196,7 @@ class SnapshotManager:
                     ]
                 )
 
-        print(
+        logger.info(
             tabulate(
                 table, headers=["metric", "before", "after", "diff"], tablefmt="grid"
             )
@@ -205,7 +205,7 @@ class SnapshotManager:
     def printPermissions(self):
         # Accounts
         table = []
-        console.print("[blue]=== Permissions: {} Sett ===[/blue]".format(self.key))
+        logger.info("[blue]=== Permissions: {} Sett ===[/blue]".format(self.key))
 
         table.append(["sett.keeper", self.sett.keeper()])
         table.append(["sett.governance", self.sett.governance()])
@@ -219,21 +219,21 @@ class SnapshotManager:
         table.append(["strategy.guardian", self.strategy.guardian()])
 
         table.append(["---------------", "--------------------"])
-        print(tabulate(table, headers=["account", "value"]))
+        logger.info(tabulate(table, headers=["account", "value"]))
 
     def printBasics(self, snap: Snap):
         table = []
-        console.print("[green]=== Status Report: {} Sett ===[green]".format(self.key))
+        logger.info("[green]=== Status Report: {} Sett ===[green]".format(self.key))
 
         table.append(["sett.pricePerFullShare", snap.get("sett.pricePerFullShare")])
         table.append(["strategy.want", snap.balances("want", "strategy")])
 
-        print(tabulate(table, headers=["metric", "value"]))
+        logger.info(tabulate(table, headers=["metric", "value"]))
 
     def printTable(self, snap: Snap):
         # Numerical Data
         table = []
-        console.print("[green]=== Status Report: {} Sett ===[green]".format(self.key))
+        logger.info("[green]=== Status Report: {} Sett ===[green]".format(self.key))
 
         for key, item in snap.data.items():
             # Don't display 0 balances:
@@ -242,4 +242,4 @@ class SnapshotManager:
             table.append([key, self.format(key, item)])
 
         table.append(["---------------", "--------------------"])
-        print(tabulate(table, headers=["metric", "value"]))
+        logger.info(tabulate(table, headers=["metric", "value"]))
