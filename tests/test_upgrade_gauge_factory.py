@@ -4,7 +4,6 @@ from brownie import (
     Controller,
     SettV3,
     MyStrategy,
-    ERC20Upgradeable,
     Contract
 )
 import brownie

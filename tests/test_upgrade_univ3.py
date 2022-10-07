@@ -8,7 +8,6 @@ from brownie import (
     Controller,
     SettV3,
     MyStrategy,
-    ERC20Upgradeable,
     Contract
 )
 from dotmap import DotMap
@@ -34,6 +33,8 @@ GAUGE_DEPOSIT = "0x555766f3da968ecBefa690Ffd49A2Ac02f47aa5f"
 """
 Tests for the Upgrade from mainnet version to upgraded version
 These tests must be run on arbitrum-fork
+NOTE: This test is old, it's ok for it to fail
+Consider deleting this file
 """
 
 @pytest.fixture
