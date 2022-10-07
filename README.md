@@ -1,40 +1,13 @@
 # Arbitrum Ren wBTC Curve Strat - with upgrade
 
 Upgrade changes SUSHISWAP_ROUTER
-to be SWAPR_ROUTER
-Also adds `setSwaprAllowance` to set up the allowance on upgraded contract
+to be UNIV3_ROUTER
+Also adds `setUniV3Allowance` to set up the allowance on upgraded contract
 
 NOTE: Tests MUST be run on arbitrum-fork for `test_upgrade` to pass
 Anything else can be run on any network
 
 Some work was taken from: https://github.com/shuklaayush/WBTC-WETH-SLP-Arbitrum-Strategy
-
-## NOTE: TO TEST
-Arbitrum fork doesn't work with hardhat out of the box right now (probably because of a JSON-RPC incompatibility with Arbitrum node). We'll test using our own fork of hardhat that circumvents this issue. 
-
-### Install Hardhat fork
-Clone my fork of hardhat repo somewhere
-```bash
-git clone git@github.com:shuklaayush/hardhat.git
-cd hardhat
-git checkout fix/arbitrum
-yarn build
-cd packages/hardhat-core
-yarn pack # Generate hardhat-v2.6.2.tgz
-``` 
-Clone this repo and install hardhat
-```bash
-git clone git@github.com:shuklaayush/WETH-Sushi-SLP-Arbitrum-Strategy.git
-yarn add -D <path-to-hardhat-pack-file>
-```
-
-### Run brownie
-Import the fork network and run
-```
-brownie networks import network-config.yaml
-brownie test
-```
-
 
 # Badger Strategy V1 Brownie Mix
 
