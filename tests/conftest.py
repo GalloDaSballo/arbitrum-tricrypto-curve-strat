@@ -4,7 +4,6 @@ from brownie import (
     Controller,
     SettV3,
     MyStrategy,
-    ERC20Upgradeable
 )
 from config import (
     BADGER_DEV_MULTISIG,
@@ -72,7 +71,6 @@ def deployed():
 
     strategy.setGauge(GAUGE, {"from": governance})
     strategy.setGaugeFactory(GAUGE_FACTORY, {"from": governance})
-    strategy.setUniV3Allowance({"from": governance})
 
     ## Tool that verifies bytecode (run independently) <- Webapp for anyone to verify
 
@@ -99,7 +97,7 @@ def deployed():
         {"from": deployer, "value": 5000000000000000000},
     )
     
-    WBTC_TOKEN = ERC20Upgradeable.at(WBTC)
+    WBTC_TOKEN = interface.ERC20(WBTC)
     toDeposit = WBTC_TOKEN.balanceOf(deployer)
     WBTC_TOKEN.approve(strategy.CURVE_POOL(), toDeposit, {"from": deployer})
     ## Doing this gives us want
