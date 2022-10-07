@@ -96,8 +96,9 @@ contract MyStrategy is BaseStrategy {
         /// @dev do one off approvals here
         IERC20Upgradeable(want).safeApprove(gauge, type(uint256).max);
 
-        // NOTE: Since we will upgrade to use SWAPR_ROUTER we need to give allowance through a convenience function
-        IERC20Upgradeable(reward).safeApprove(SWAPR_ROUTER, type(uint256).max);
+        // NOTE: Since we will upgrade to use UNIV3_ROUTER we need to give allowance through a convenience function
+        // Updated this in case we re-deploy somewhere else
+        IERC20Upgradeable(reward).safeApprove(UNIV3_ROUTER, type(uint256).max);
         IERC20Upgradeable(WBTC).safeApprove(CURVE_POOL, type(uint256).max);
     }
 
@@ -137,7 +138,7 @@ contract MyStrategy is BaseStrategy {
         IERC20Upgradeable(reward).safeApprove(SWAPR_ROUTER, type(uint256).max);
     }
 
-    /// @dev Add Allowance to SWAPR_ROUTER
+    /// @dev Add Allowance to UNIV3_ROUTER
     /// @dev used here because we upgraded the strat to use this
     function setUniV3Allowance() public {
         _onlyGovernance();
@@ -264,13 +265,19 @@ contract MyStrategy is BaseStrategy {
         );
 
         // Swap CRV to wBTC and then LP into the pool
-        bytes memory abiEncodePackedPath = abi.encodePacked(reward, uint24(10000), WETH, uint24(3000), WBTC);
+        bytes memory abiEncodePackedPath = abi.encodePacked(
+            reward,
+            uint24(10000),
+            WETH,
+            uint24(3000),
+            WBTC
+        );
         ExactInputParams memory params = ExactInputParams({
-                path: abiEncodePackedPath,
-                recipient: address(this),
-                deadline: block.timestamp,
-                amountIn: rewardsToReinvest,
-                amountOutMinimum: 0
+            path: abiEncodePackedPath,
+            recipient: address(this),
+            deadline: block.timestamp,
+            amountIn: rewardsToReinvest,
+            amountOutMinimum: 0
         });
         IUniswapRouterV3(UNIV3_ROUTER).exactInput(params);
 
