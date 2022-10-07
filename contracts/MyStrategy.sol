@@ -20,6 +20,8 @@ import {BaseStrategy} from "../deps/BaseStrategy.sol";
 /// @title Arbitrum Curve triCrypto Strategy
 /// @author Badger DAO
 /// @notice Deposit LP Token, harvest CRV, 50% autocompound, 50% emitted via badgerTree
+// V1 - Initial Release
+/// V1.1 - Uses UniV3 for swapping
 contract MyStrategy is BaseStrategy {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using AddressUpgradeable for address;
@@ -154,7 +156,7 @@ contract MyStrategy is BaseStrategy {
 
     /// @dev Specify the version of the Strategy, for upgrades
     function version() external pure returns (string memory) {
-        return "1.0";
+        return "1.1";
     }
 
     /// @dev Balance of want currently held in strategy positions
